@@ -2,22 +2,48 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Carte Leaflet</title>
+  <title>Carte Leaflet - Points aléatoires Québec</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <style>
-    #map { height: 100vh; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    var map = L.map('map').setView([48.8566, 2.3522], 13); // Paris
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script>
+    // Initialiser la carte
+    var map = L.map('map').setView([52, -72], 5.5); // Centré sur le Québec
+
+    // Tuiles OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
+
+    // Génération de 1000 points aléatoires
+    function generateRandomMarkers(n) {
+      var markers = L.markerClusterGroup();
+
+      for (let i = 0; i < n; i++) {
+        let lat = 45 + Math.random() * (53 - 45);
+        let lng = -79.5 + Math.random() * (22.5); // -79.5 à -57
+        let marker = L.marker([lat, lng]).bindPopup("Point #" + (i + 1));
+        markers.addLayer(marker);
+      }
+
+      return markers;
+    }
+
+    var clusterGroup = generateRandomMarkers(5000);
+    map.addLayer(clusterGroup);
   </script>
 </body>
 </html>

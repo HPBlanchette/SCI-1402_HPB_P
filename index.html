@@ -32,7 +32,7 @@
       var markers = L.markerClusterGroup();
 
       for (let i = 0; i < n; i++) {
-        let lat = 55 + Math.random() * (55 - 45);
+        let lat = 55 + Math.random() * (55 - 35);
         let lng = -79.5 + Math.random() * (22.5); // -79.5 à -57
         let marker = L.marker([lat, lng]).bindPopup("Point #" + (i + 1));
         markers.addLayer(marker);

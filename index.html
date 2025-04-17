@@ -28,12 +28,11 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Génération de 1000 points aléatoires
     function generateRandomMarkers(n) {
       var markers = L.markerClusterGroup();
 
       for (let i = 0; i < n; i++) {
-        let lat = 45 + Math.random() * (53 - 45);
+        let lat = 45 + Math.random() * (45 - 45);
         let lng = -79.5 + Math.random() * (22.5); // -79.5 à -57
         let marker = L.marker([lat, lng]).bindPopup("Point #" + (i + 1));
         markers.addLayer(marker);
@@ -42,7 +41,7 @@
       return markers;
     }
 
-    var clusterGroup = generateRandomMarkers(5000);
+    var clusterGroup = generateRandomMarkers(50000);
     map.addLayer(clusterGroup);
   </script>
 </body>

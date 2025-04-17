@@ -28,6 +28,19 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
+      // Charger le GeoJSON du contour du Québec
+  fetch('boite.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: {
+          color: 'blue',
+          weight: 2,
+          fill: false
+        }
+      }).addTo(map);
+    });
+
     function generateRandomMarkers(n) {
       var markers = L.markerClusterGroup();
 

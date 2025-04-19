@@ -2,9 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <meta name="robots" content="noindex, nofollow">
-  <title>Carte Leaflet - Points aléatoires Québec</title>
+  <title>Carte Leaflet avec CSV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
@@ -20,43 +20,61 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script>
-    // Initialiser la carte
-    var map = L.map('map').setView([52, -72], 5.5); // Centré sur le Québec
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    // Tuiles OpenStreetMap
+  <script>
+    const map = L.map('map').setView([46.5, -72.5], 7);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-      // Charger le GeoJSON du contour du Québec
-  fetch('boite.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, {
-        style: {
-          color: 'blue',
-          weight: 2,
-          fill: false
-        }
-      }).addTo(map);
-    });
+    // Charger le polygone du Québec
+    fetch('boite.geojson')
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: {
+            color: 'blue',
+            weight: 2,
+            fill: false
+          }
+        }).addTo(map);
+      });
 
-    function generateRandomMarkers(n) {
-      var markers = L.markerClusterGroup();
+    // Charger les points depuis resultat_sf.csv
+    Papa.parse('resultat_sf.csv', {
+      download: true,
+      header: true,
+      complete: function(results) {
+        const markers = L.markerClusterGroup();
 
-      for (let i = 0; i < n; i++) {
-        let lat = 55 + Math.random() * (55 - 35);
-        let lng = -79.5 + Math.random() * (22.5); // -79.5 à -57
-        let marker = L.marker([lat, lng]).bindPopup("Point #" + (i + 1));
-        markers.addLayer(marker);
+        results.data.forEach(row => {
+          const lat = parseFloat(row.Latitude);
+          const lon = parseFloat(row.Longitude);
+          const couleur = row.point_coleur || 'blue';
+
+          if (!isNaN(lat) && !isNaN(lon)) {
+            const marker = L.circleMarker([lat, lon], {
+              radius: 6,
+              color: couleur,
+              fillColor: couleur,
+              fillOpacity: 0.8,
+              weight: 1
+            }).bindPopup(`
+              <strong>${row.No_civique || ''} ${row.Nom_rue || ''}</strong><br/>
+              ${row.munnom || ''} (${row.Code_postal})<br/>
+              Type : ${row.type_adresse || ''}<br/>
+              Unités : ${row.nb_unite || ''}<br/>
+              Région : ${row.Region_ADM || ''}
+            `);
+            markers.addLayer(marker);
+          }
+        });
+
+        map.addLayer(markers);
       }
-
-      return markers;
-    }
-
-    var clusterGroup = generateRandomMarkers(50000);
-    map.addLayer(clusterGroup);
+    });
   </script>
 </body>
 </html>

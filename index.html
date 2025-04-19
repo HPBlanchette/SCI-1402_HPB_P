@@ -15,6 +15,25 @@
     }
   </style>
 </head>
+
+  <button id="toggleClusters"
+  style="
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  ">
+  Désactiver les clusters
+</button>
+
+
+  
 <body>
   <div id="map"></div>
 
@@ -23,6 +42,28 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
+
+      const toggleBtn = document.getElementById('toggleClusters');
+  toggleBtn.addEventListener('click', toggleClustering);
+
+    let clusteredLayer = L.markerClusterGroup();
+    let plainLayer = L.layerGroup();
+    let clusteringEnabled = true;
+    
+    // Fonction pour basculer entre les couches
+    function toggleClustering() {
+      if (clusteringEnabled) {
+        map.removeLayer(clusteredLayer);
+        map.addLayer(plainLayer);
+        toggleBtn.innerText = "Activer les clusters";
+      } else {
+        map.removeLayer(plainLayer);
+        map.addLayer(clusteredLayer);
+        toggleBtn.innerText = "Désactiver les clusters";
+      }
+      clusteringEnabled = !clusteringEnabled;
+    }
+    
     const map = L.map('map').setView([46.5, -72.5], 7);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -43,38 +84,39 @@
       });
 
     // Charger les points depuis resultat_sf.csv
-    Papa.parse('resultat_sf.csv', {
-      download: true,
-      header: true,
-      complete: function(results) {
-        const markers = L.markerClusterGroup();
+Papa.parse('resultat_sf.csv', {
+  download: true,
+  header: true,
+  complete: function(results) {
+    results.data.forEach(row => {
+      const lat = parseFloat(row.Latitude);
+      const lon = parseFloat(row.Longitude);
+      const couleur = row.point_coleur || 'blue';
 
-        results.data.forEach(row => {
-          const lat = parseFloat(row.Latitude);
-          const lon = parseFloat(row.Longitude);
-          const couleur = row.point_coleur || 'blue';
+      if (!isNaN(lat) && !isNaN(lon)) {
+        const marker = L.circleMarker([lat, lon], {
+          radius: 6,
+          color: couleur,
+          fillColor: couleur,
+          fillOpacity: 0.8,
+          weight: 1
+        }).bindPopup(`
+          <strong>${row.No_civique || ''} ${row.Nom_rue || ''}</strong><br/>
+          ${row.munnom || ''} (${row.Code_postal})<br/>
+          Type : ${row.type_adresse || ''}<br/>
+          Unités : ${row.nb_unite || ''}<br/>
+          Région : ${row.Region_ADM || ''}
+        `);
 
-          if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.circleMarker([lat, lon], {
-              radius: 6,
-              color: couleur,
-              fillColor: couleur,
-              fillOpacity: 0.8,
-              weight: 1
-            }).bindPopup(`
-              <strong>${row.No_civique || ''} ${row.Nom_rue || ''}</strong><br/>
-              ${row.munnom || ''} (${row.Code_postal})<br/>
-              Type : ${row.type_adresse || ''}<br/>
-              Unités : ${row.nb_unite || ''}<br/>
-              Région : ${row.Region_ADM || ''}
-            `);
-            markers.addLayer(marker);
-          }
-        });
-
-        map.addLayer(markers);
+        clusteredLayer.addLayer(marker);
+        plainLayer.addLayer(marker.clone());
       }
     });
+
+    map.addLayer(clusteredLayer); // Cluster activé par défaut
+  }
+});
+
   </script>
 </body>
 </html>

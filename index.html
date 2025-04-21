@@ -91,7 +91,7 @@
     }).addTo(map2);
 
     // Polygones des clusters
-    fetch('clusters_polygones.geojson')
+    fetch('boite.geojson')
       .then(res => res.json())
       .then(data => {
         L.geoJSON(data, {
@@ -108,7 +108,7 @@
       });
 
     // Points clusterisés
-    fetch('points_clusterises.geojson')
+    fetch('boite.geojson')
       .then(res => res.json())
       .then(data => {
         L.geoJSON(data, {
